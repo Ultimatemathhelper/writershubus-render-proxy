@@ -85,6 +85,29 @@ app.get('/api/status/:id', async (req, res) => {
   }
 });
 
+// POST /api/claude — proxy Claude API calls
+app.post('/api/claude', async (req, res) => {
+  const anthropicKey = process.env.ANTHROPIC_API_KEY || req.headers['x-anthropic-key'];
+  if (!anthropicKey) return res.status(401).json({ error: 'No Anthropic API key. Set ANTHROPIC_API_KEY env var.' });
+
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': anthropicKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify(req.body)
+    });
+    const data = await r.json();
+    res.status(r.status).json(data);
+  } catch (e) {
+    console.error('[claude] Error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`\n✅ WritersHub Grok Proxy running on port ${PORT}`);
   console.log(`   Health: http://localhost:${PORT}/`);
