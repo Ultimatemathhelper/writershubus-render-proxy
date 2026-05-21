@@ -8,7 +8,12 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors()); // Allow requests from browser/artifact
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-xai-key"]
+}));
+app.options("*", cors()); // Handle preflight requests
 app.use(express.json());
 
 // Resolve xAI API key — env var preferred, header fallback
