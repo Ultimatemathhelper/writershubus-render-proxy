@@ -95,7 +95,19 @@ app.get('/api/status/:id', async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
-
+app.post('/api/claude', async (req, res) => {
+  const key = process.env.ANTHROPIC_API_KEY || req.headers['x-anthropic-key'];
+  if (!key) return res.status(401).json({ error: 'No Anthropic API key' });
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify(req.body)
+    });
+    const data = await r.json();
+    res.status(r.status).json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
 app.listen(PORT, () => {
   console.log(`\n✅ WritersHub Proxy v2.0 running on port ${PORT}`);
   console.log(`   Anthropic key: ${process.env.ANTHROPIC_API_KEY ? 'loaded' : 'missing'}`);
